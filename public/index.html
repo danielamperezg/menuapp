@@ -227,6 +227,19 @@
       color: #7f8c8d;
     }
 
+    .code-output {
+      background: #1e2b2e;
+      color: #f0eae2;
+      padding: 16px;
+      border-radius: 20px;
+      font-family: monospace;
+      font-size: 0.75rem;
+      white-space: pre-wrap;
+      word-break: break-all;
+      max-height: 280px;
+      overflow: auto;
+    }
+
     .credentials-hint {
       font-size: 0.8rem;
       color: #54606a;
@@ -326,6 +339,19 @@
     </div>
     <div id="dishesListContainer">
       <div class="empty-state">Select a restaurant to load dishes</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h2>🚀 Generate client menu app</h2>
+    </div>
+    <p style="margin-bottom:12px; font-size:0.9rem;">When menu is complete, generate a standalone HTML snapshot you can share with your client.</p>
+    <button id="generateHtmlBtn" class="success">📄 Generate menu HTML</button>
+    <div id="htmlOutputContainer" style="margin-top: 20px; display: none;">
+      <label>📋 Copy this HTML (save as menu.html)</label>
+      <div id="generatedHtml" class="code-output"></div>
+      <button id="copyHtmlBtn" class="secondary small" style="margin-top: 10px;">📋 Copy to clipboard</button>
     </div>
   </div>
 </div>
@@ -710,6 +736,88 @@
     }
   }
 
+  function escapeForTemplate(value) {
+    return String(value || "")
+      .replace(/\\/g, "\\\\")
+      .replace(/`/g, "\\`")
+      .replace(/\$\{/g, "\\${");
+  }
+
+  function generateFinalHtml() {
+    if (!currentRestaurantId) {
+      showTemporaryMessage("Select a restaurant first", "warning");
+      return;
+    }
+
+    const restaurant = restaurants.find((r) => Number(r.id) === Number(currentRestaurantId));
+    if (!restaurant) {
+      showTemporaryMessage("Restaurant not found", "warning");
+      return;
+    }
+
+    const grouped = {};
+    allDishes.forEach((dish) => {
+      const category = dish.category || "Uncategorized";
+      if (!grouped[category]) {
+        grouped[category] = [];
+      }
+      grouped[category].push(dish);
+    });
+
+    const outputDiv = document.getElementById("htmlOutputContainer");
+    const codeDiv = document.getElementById("generatedHtml");
+
+    const categories = Object.keys(grouped)
+      .sort((a, b) => a.localeCompare(b))
+      .map((category) => {
+        const dishesHtml = grouped[category]
+          .map((dish) => `
+            <article class="dish">
+              <h3>${escapeForTemplate(dish.name)}</h3>
+              <p>${escapeForTemplate(dish.description || "")}</p>
+            </article>
+          `)
+          .join("");
+        return `
+          <section class="category">
+            <h2>${escapeForTemplate(category)}</h2>
+            ${dishesHtml}
+          </section>
+        `;
+      })
+      .join("");
+
+    const generated = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>${escapeForTemplate(restaurant.name)} Menu</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 0; padding: 24px; background: #f8fafc; color: #0f172a; }
+    .menu { max-width: 800px; margin: 0 auto; background: #ffffff; border-radius: 16px; padding: 24px; box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08); }
+    h1 { margin-top: 0; font-size: 2rem; }
+    .category { margin-top: 24px; }
+    .category h2 { border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; margin-bottom: 12px; }
+    .dish { margin-bottom: 14px; }
+    .dish h3 { margin: 0 0 6px 0; font-size: 1.1rem; }
+    .dish p { margin: 0; color: #334155; white-space: pre-wrap; }
+    .meta { margin-top: 32px; color: #64748b; font-size: 0.85rem; }
+  </style>
+</head>
+<body>
+  <main class="menu">
+    <h1>${escapeForTemplate(restaurant.name)}</h1>
+    ${categories || "<p>No dishes added yet.</p>"}
+    <p class="meta">Generated from Menu Builder Pro on ${new Date().toLocaleString()}.</p>
+  </main>
+</body>
+</html>`;
+
+    codeDiv.innerText = generated;
+    outputDiv.style.display = "block";
+  }
+
   async function loadHealth() {
     try {
       const health = await fetchJson("/api/health");
@@ -752,6 +860,20 @@
   document.getElementById("refreshRestaurantsBtn").addEventListener("click", loadRestaurants);
   document.getElementById("newRestaurantBtn").addEventListener("click", createRestaurant);
   document.getElementById("editRestaurantBtn").addEventListener("click", editRestaurantConnection);
+  document.getElementById("generateHtmlBtn").addEventListener("click", generateFinalHtml);
+  document.getElementById("copyHtmlBtn").addEventListener("click", async () => {
+    const html = document.getElementById("generatedHtml").innerText || "";
+    if (!html.trim()) {
+      showTemporaryMessage("Generate HTML first", "warning");
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(html);
+      showTemporaryMessage("📋 HTML copied to clipboard");
+    } catch (error) {
+      showTemporaryMessage("Clipboard copy failed; copy manually from the box.", "warning");
+    }
+  });
 
   async function init() {
     renderAllergenChips({});
