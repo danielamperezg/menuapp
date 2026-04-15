@@ -322,6 +322,24 @@ function normalizeRestaurantRow(row) {
   };
 }
 
+function groupDishesByCategory(dishes) {
+  const grouped = {};
+  for (const dish of dishes) {
+    const category = dish.category || "Uncategorized";
+    if (!grouped[category]) {
+      grouped[category] = [];
+    }
+    grouped[category].push(dish);
+  }
+
+  return Object.keys(grouped)
+    .sort((a, b) => a.localeCompare(b))
+    .map((category) => ({
+      category,
+      dishes: grouped[category],
+    }));
+}
+
 async function getRestaurantOrThrow(id) {
   const restaurant = await getSql("SELECT * FROM restaurants WHERE id = ?", [id]);
   if (!restaurant) {
@@ -376,6 +394,16 @@ app.get("/api/restaurants", async (req, res, next) => {
       "SELECT * FROM restaurants ORDER BY updated_at DESC, created_at DESC"
     );
     res.json({ restaurants: rows.map(normalizeRestaurantRow) });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get("/api/restaurants/:id", async (req, res, next) => {
+  try {
+    const id = Number(req.params.id);
+    const row = await getRestaurantOrThrow(id);
+    res.json({ restaurant: normalizeRestaurantRow(row) });
   } catch (error) {
     next(error);
   }
@@ -459,6 +487,29 @@ app.get("/api/restaurants/:id/dishes", async (req, res, next) => {
     });
 
     res.json({ dishes: fromSheetRows(response.data.values || []) });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get("/api/restaurants/:id/training-app", async (req, res, next) => {
+  try {
+    const id = Number(req.params.id);
+    const restaurant = await getRestaurantOrThrow(id);
+    const sheets = await getSheetsClient();
+
+    await ensureHeaderRow(sheets, restaurant.spreadsheet_id, restaurant.sheet_name);
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId: restaurant.spreadsheet_id,
+      range: sheetRange(restaurant.sheet_name, "A2:R"),
+    });
+
+    const dishes = fromSheetRows(response.data.values || []);
+    res.json({
+      restaurant: normalizeRestaurantRow(restaurant),
+      generatedAt: new Date().toISOString(),
+      sections: groupDishesByCategory(dishes),
+    });
   } catch (error) {
     next(error);
   }
@@ -558,6 +609,10 @@ app.delete("/api/restaurants/:id/dishes/:rowNum", async (req, res, next) => {
 
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
+});
+
+app.get("/training/:restaurantId", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "training.html"));
 });
 
 app.use((error, req, res, next) => {

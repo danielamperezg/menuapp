@@ -287,6 +287,18 @@
     <div class="credentials-hint" id="serviceAccountHint"></div>
   </div>
 
+  <div class="card">
+    <div class="card-header">
+      <h2>🧭 System architecture</h2>
+    </div>
+    <ol style="padding-left: 20px; color: #31424d; line-height: 1.65;">
+      <li><b>Intake layer:</b> this form is your live interview tool with the chef.</li>
+      <li><b>Database layer:</b> each save writes to the connected spreadsheet.</li>
+      <li><b>Output layer:</b> training app views use that same data source directly.</li>
+    </ol>
+    <p class="credentials-hint">Interviewing the chef and building production data happen at the same time.</p>
+  </div>
+
   <div class="card" id="dishFormCard">
     <div class="card-header">
       <h2><span id="formTitle">➕ Add new dish</span></h2>
@@ -344,14 +356,18 @@
 
   <div class="card">
     <div class="card-header">
-      <h2>🚀 Generate client menu app</h2>
+      <h2>🚀 Output layer · Restaurant training app</h2>
     </div>
-    <p style="margin-bottom:12px; font-size:0.9rem;">When menu is complete, generate a standalone HTML snapshot you can share with your client.</p>
-    <button id="generateHtmlBtn" class="success">📄 Generate menu HTML</button>
+    <p style="margin-bottom:12px; font-size:0.9rem;">
+      Use the same spreadsheet data to produce the restaurant-facing training app.
+      You can open a live app (always current) or generate a static snapshot file.
+    </p>
+    <button id="openTrainingAppBtn" class="secondary">🔗 Open live training app</button>
+    <button id="generateSnapshotBtn" class="success">📄 Generate static training app</button>
     <div id="htmlOutputContainer" style="margin-top: 20px; display: none;">
-      <label>📋 Copy this HTML (save as menu.html)</label>
+      <label>📋 Copy this HTML (save as training-app.html)</label>
       <div id="generatedHtml" class="code-output"></div>
-      <button id="copyHtmlBtn" class="secondary small" style="margin-top: 10px;">📋 Copy to clipboard</button>
+      <button id="copySnapshotBtn" class="secondary small" style="margin-top: 10px;">📋 Copy to clipboard</button>
     </div>
   </div>
 </div>
@@ -743,7 +759,32 @@
       .replace(/\$\{/g, "\\${");
   }
 
-  function generateFinalHtml() {
+  function escapeHtmlForOutput(value) {
+    return String(value || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+  }
+
+  function formatAllergens(dish) {
+    const positives = ALLERGEN_KEYS
+      .filter((key) => String(dish[key] || "NO").toUpperCase() === "YES")
+      .map((key, idx) => ALLERGEN_LABELS[ALLERGEN_KEYS.indexOf(key)]);
+    if (!positives.length) {
+      return "No declared allergens";
+    }
+    return positives.join(", ");
+  }
+
+  function openLiveTrainingApp() {
+    if (!currentRestaurantId) {
+      showTemporaryMessage("Select a restaurant first", "warning");
+      return;
+    }
+    window.open(`/training/${currentRestaurantId}`, "_blank", "noopener,noreferrer");
+  }
+
+  function generateTrainingSnapshot() {
     if (!currentRestaurantId) {
       showTemporaryMessage("Select a restaurant first", "warning");
       return;
@@ -773,14 +814,17 @@
         const dishesHtml = grouped[category]
           .map((dish) => `
             <article class="dish">
-              <h3>${escapeForTemplate(dish.name)}</h3>
-              <p>${escapeForTemplate(dish.description || "")}</p>
+              <h3>${escapeHtmlForOutput(dish.name)}</h3>
+              <p>${escapeHtmlForOutput(dish.description || "")}</p>
+              <div class="detail"><b>Ingredients:</b> ${escapeHtmlForOutput(dish.ingredients || "Not specified")}</div>
+              <div class="detail"><b>Allowed modifications:</b> ${escapeHtmlForOutput(dish.modifications || "None listed")}</div>
+              <div class="detail"><b>Allergens:</b> ${escapeHtmlForOutput(formatAllergens(dish))}</div>
             </article>
           `)
           .join("");
         return `
           <section class="category">
-            <h2>${escapeForTemplate(category)}</h2>
+            <h2>${escapeHtmlForOutput(category)}</h2>
             ${dishesHtml}
           </section>
         `;
@@ -792,22 +836,25 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>${escapeForTemplate(restaurant.name)} Menu</title>
+  <title>${escapeHtmlForOutput(restaurant.name)} Training Guide</title>
   <style>
     body { font-family: system-ui, sans-serif; margin: 0; padding: 24px; background: #f8fafc; color: #0f172a; }
-    .menu { max-width: 800px; margin: 0 auto; background: #ffffff; border-radius: 16px; padding: 24px; box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08); }
+    .menu { max-width: 900px; margin: 0 auto; background: #ffffff; border-radius: 16px; padding: 24px; box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08); }
     h1 { margin-top: 0; font-size: 2rem; }
+    .subtitle { color: #475569; margin-top: -6px; }
     .category { margin-top: 24px; }
     .category h2 { border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; margin-bottom: 12px; }
-    .dish { margin-bottom: 14px; }
+    .dish { margin-bottom: 14px; padding: 14px; border: 1px solid #e2e8f0; border-radius: 10px; }
     .dish h3 { margin: 0 0 6px 0; font-size: 1.1rem; }
     .dish p { margin: 0; color: #334155; white-space: pre-wrap; }
+    .detail { margin-top: 8px; color: #1f2937; white-space: pre-wrap; }
     .meta { margin-top: 32px; color: #64748b; font-size: 0.85rem; }
   </style>
 </head>
 <body>
   <main class="menu">
-    <h1>${escapeForTemplate(restaurant.name)}</h1>
+    <h1>${escapeHtmlForOutput(restaurant.name)}</h1>
+    <p class="subtitle">Restaurant training guide</p>
     ${categories || "<p>No dishes added yet.</p>"}
     <p class="meta">Generated from Menu Builder Pro on ${new Date().toLocaleString()}.</p>
   </main>
@@ -860,8 +907,9 @@
   document.getElementById("refreshRestaurantsBtn").addEventListener("click", loadRestaurants);
   document.getElementById("newRestaurantBtn").addEventListener("click", createRestaurant);
   document.getElementById("editRestaurantBtn").addEventListener("click", editRestaurantConnection);
-  document.getElementById("generateHtmlBtn").addEventListener("click", generateFinalHtml);
-  document.getElementById("copyHtmlBtn").addEventListener("click", async () => {
+  document.getElementById("openTrainingAppBtn").addEventListener("click", openLiveTrainingApp);
+  document.getElementById("generateSnapshotBtn").addEventListener("click", generateTrainingSnapshot);
+  document.getElementById("copySnapshotBtn").addEventListener("click", async () => {
     const html = document.getElementById("generatedHtml").innerText || "";
     if (!html.trim()) {
       showTemporaryMessage("Generate HTML first", "warning");
