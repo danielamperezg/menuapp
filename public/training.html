@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Restaurant Training App</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      background: #f6f8fb;
+      color: #0f172a;
+    }
+
+    .container {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 24px 18px 40px;
+    }
+
+    .card {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 18px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+      margin-bottom: 14px;
+    }
+
+    h1 {
+      margin: 0 0 6px;
+      font-size: 1.8rem;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 1.25rem;
+      border-bottom: 1px solid #e2e8f0;
+      padding-bottom: 8px;
+    }
+
+    h3 {
+      margin: 0 0 8px;
+      font-size: 1.05rem;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: #475569;
+    }
+
+    .meta {
+      margin-top: 8px;
+      font-size: 0.82rem;
+      color: #64748b;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+
+    input[type="search"] {
+      flex: 1;
+      min-width: 220px;
+      border: 1px solid #cbd5e1;
+      border-radius: 999px;
+      padding: 10px 14px;
+      font-size: 0.95rem;
+    }
+
+    button {
+      border: 1px solid #cbd5e1;
+      border-radius: 999px;
+      background: #fff;
+      padding: 9px 14px;
+      cursor: pointer;
+      font-weight: 600;
+      color: #0f172a;
+    }
+
+    button.primary {
+      background: #0f172a;
+      border-color: #0f172a;
+      color: #fff;
+    }
+
+    .section {
+      margin-top: 18px;
+    }
+
+    .dish {
+      margin-top: 12px;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 12px;
+      background: #fcfdff;
+    }
+
+    .dish p {
+      margin: 0 0 6px;
+      color: #334155;
+      white-space: pre-wrap;
+    }
+
+    .row {
+      margin-top: 6px;
+      font-size: 0.92rem;
+      color: #1f2937;
+      white-space: pre-wrap;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      border: 1px solid #cbd5e1;
+      background: #fff;
+      margin-right: 5px;
+      margin-top: 5px;
+    }
+
+    .error {
+      background: #fff1f2;
+      color: #9f1239;
+      border: 1px solid #fecdd3;
+      border-radius: 12px;
+      padding: 12px;
+    }
+
+    .empty {
+      color: #64748b;
+      font-size: 0.95rem;
+      padding: 14px 0;
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <section class="card">
+      <h1 id="title">Restaurant Training App</h1>
+      <p class="subtitle">
+        This guide is generated directly from the structured intake database.
+      </p>
+      <div class="meta" id="meta">Loading...</div>
+      <div class="toolbar">
+        <input id="searchInput" type="search" placeholder="Search dishes, category, or ingredients" />
+        <button id="refreshBtn" class="primary">Refresh</button>
+      </div>
+    </section>
+    <section id="content"></section>
+  </main>
+
+  <script>
+    const ALLERGEN_KEYS = ["dairy", "eggs", "fish", "shellfish", "treenuts", "peanuts", "gluten", "soy", "sesame", "alcohol"];
+    const ALLERGEN_LABELS = ["Dairy", "Eggs", "Fish", "Shellfish", "Tree Nuts", "Peanuts", "Gluten", "Soy", "Sesame", "Alcohol"];
+
+    let trainingData = null;
+    let searchTerm = "";
+
+    function escapeHtml(value) {
+      return String(value || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+    }
+
+    function getRestaurantId() {
+      const pathMatch = window.location.pathname.match(/\/training\/(\d+)/);
+      if (pathMatch) return Number(pathMatch[1]);
+      const queryId = Number(new URLSearchParams(window.location.search).get("restaurant"));
+      return Number.isFinite(queryId) && queryId > 0 ? queryId : null;
+    }
+
+    function getAllergenLabels(dish) {
+      const labels = [];
+      ALLERGEN_KEYS.forEach((key, idx) => {
+        if (String(dish[key] || "NO").toUpperCase() === "YES") {
+          labels.push(ALLERGEN_LABELS[idx]);
+        }
+      });
+      return labels;
+    }
+
+    function renderContent() {
+      const content = document.getElementById("content");
+      if (!trainingData) {
+        content.innerHTML = '<div class="card empty">No training data found.</div>';
+        return;
+      }
+
+      const lowered = searchTerm.trim().toLowerCase();
+      let sections = trainingData.sections || [];
+      if (lowered) {
+        sections = sections
+          .map((section) => ({
+            category: section.category,
+            dishes: (section.dishes || []).filter((dish) => {
+              const haystack = [
+                dish.name,
+                dish.category,
+                dish.description,
+                dish.ingredients,
+                dish.modifications,
+                dish.ingredientsSpanish,
+                dish.modificationsSpanish
+              ]
+                .join(" ")
+                .toLowerCase();
+              return haystack.includes(lowered);
+            })
+          }))
+          .filter((section) => section.dishes.length);
+      }
+
+      if (!sections.length) {
+        content.innerHTML = '<div class="card empty">No dishes match this search.</div>';
+        return;
+      }
+
+      content.innerHTML = sections
+        .map((section) => {
+          const dishesHtml = section.dishes
+            .map((dish) => {
+              const allergenBadges = getAllergenLabels(dish)
+                .map((label) => `<span class="badge">${escapeHtml(label)}</span>`)
+                .join("");
+              return `
+                <article class="dish">
+                  <h3>${escapeHtml(dish.name)}</h3>
+                  <p>${escapeHtml(dish.description || "")}</p>
+                  <div class="row"><b>Ingredients:</b> ${escapeHtml(dish.ingredients || "Not specified")}</div>
+                  <div class="row"><b>Modifications:</b> ${escapeHtml(dish.modifications || "None listed")}</div>
+                  ${dish.ingredientsSpanish ? `<div class="row"><b>Ingredientes (ES):</b> ${escapeHtml(dish.ingredientsSpanish)}</div>` : ""}
+                  ${dish.modificationsSpanish ? `<div class="row"><b>Modificaciones (ES):</b> ${escapeHtml(dish.modificationsSpanish)}</div>` : ""}
+                  <div class="row"><b>Allergens:</b> ${allergenBadges || '<span class="badge">None declared</span>'}</div>
+                </article>
+              `;
+            })
+            .join("");
+
+          return `
+            <section class="card section">
+              <h2>${escapeHtml(section.category)}</h2>
+              ${dishesHtml}
+            </section>
+          `;
+        })
+        .join("");
+    }
+
+    async function fetchJson(url) {
+      const response = await fetch(url);
+      if (!response.ok) {
+        let message = "Request failed";
+        try {
+          const payload = await response.json();
+          message = payload.error || message;
+        } catch (error) {
+          message = response.statusText || message;
+        }
+        throw new Error(message);
+      }
+      return response.json();
+    }
+
+    async function loadTrainingApp() {
+      const restaurantId = getRestaurantId();
+      const titleEl = document.getElementById("title");
+      const metaEl = document.getElementById("meta");
+      const content = document.getElementById("content");
+
+      if (!restaurantId) {
+        metaEl.innerText = "Missing restaurant id.";
+        content.innerHTML = '<div class="error">Open this page from the intake app so the restaurant id is included in the URL.</div>';
+        return;
+      }
+
+      metaEl.innerText = "Loading latest menu guide data...";
+      try {
+        const data = await fetchJson(`/api/restaurants/${restaurantId}/training-app`);
+        trainingData = data;
+        titleEl.innerText = `${data.restaurant.name} · Training App`;
+        metaEl.innerText = `Live view powered by the intake database. Last loaded: ${new Date().toLocaleString()}`;
+        renderContent();
+      } catch (error) {
+        content.innerHTML = `<div class="error">Unable to load training app: ${escapeHtml(error.message)}</div>`;
+        metaEl.innerText = "Load failed.";
+      }
+    }
+
+    document.getElementById("searchInput").addEventListener("input", (event) => {
+      searchTerm = event.target.value || "";
+      renderContent();
+    });
+    document.getElementById("refreshBtn").addEventListener("click", loadTrainingApp);
+
+    loadTrainingApp();
+  </script>
+</body>
+</html>
