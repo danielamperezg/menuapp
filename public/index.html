@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <title>Menu Builder Pro · Data Entry Tool</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    }
+
+    body {
+      background: #f0f2f5;
+      padding: 24px 20px;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .card {
+      background: white;
+      border-radius: 28px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+      padding: 24px 28px;
+      margin-bottom: 24px;
+      border: 1px solid #e8edf2;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid #eef2f6;
+      gap: 8px;
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      font-weight: 600;
+      color: #1a2c3e;
+    }
+
+    h2 {
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: #1e2b2e;
+    }
+
+    h3 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #2c3e44;
+      margin: 16px 0 8px 0;
+    }
+
+    label {
+      display: block;
+      font-weight: 600;
+      font-size: 0.85rem;
+      margin: 14px 0 6px 0;
+      color: #2c3e44;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid #cfdfe8;
+      border-radius: 20px;
+      font-size: 0.95rem;
+      background: white;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: #b54a2e;
+      box-shadow: 0 0 0 3px rgba(181, 74, 46, 0.1);
+    }
+
+    textarea {
+      min-height: 80px;
+      resize: vertical;
+    }
+
+    .row-2cols {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .allergen-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 12px 0;
+      background: #f8fafc;
+      padding: 14px;
+      border-radius: 24px;
+    }
+
+    .allergen-chip {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: white;
+      padding: 5px 12px;
+      border-radius: 40px;
+      border: 1px solid #dce5ec;
+      font-size: 0.8rem;
+    }
+
+    .allergen-chip select {
+      width: 65px;
+      padding: 4px;
+      font-size: 0.75rem;
+    }
+
+    button {
+      background: #b54a2e;
+      color: white;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 40px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: 0.2s;
+      margin-right: 10px;
+      margin-top: 8px;
+    }
+
+    button.secondary {
+      background: #eef2f6;
+      color: #1e2b2e;
+      border: 1px solid #cfdfe8;
+    }
+
+    button.small {
+      padding: 5px 12px;
+      font-size: 0.8rem;
+    }
+
+    button.danger {
+      background: #dc2626;
+    }
+
+    button.success {
+      background: #2c5f2d;
+    }
+
+    button:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .dish-row {
+      background: #fefcf9;
+      border: 1px solid #e6ddd2;
+      border-radius: 18px;
+      padding: 12px 16px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .dish-name {
+      font-weight: 600;
+      font-size: 1rem;
+    }
+
+    .dish-category {
+      font-size: 0.75rem;
+      color: #b54a2e;
+      margin-top: 4px;
+    }
+
+    .search-box {
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    .search-box input {
+      padding-left: 40px;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1.1rem;
+    }
+
+    .success-banner, .warning-banner {
+      padding: 10px 16px;
+      border-radius: 16px;
+      margin-bottom: 16px;
+      font-size: 0.9rem;
+    }
+
+    .success-banner {
+      background: #e6f7e6;
+      border-left: 4px solid #2e8b57;
+      color: #1e7e34;
+    }
+
+    .warning-banner {
+      background: #fff7ed;
+      border-left: 4px solid #ea580c;
+      color: #9a3412;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 30px;
+      color: #7f8c8d;
+    }
+
+    .credentials-hint {
+      font-size: 0.8rem;
+      color: #54606a;
+      margin-top: 8px;
+    }
+
+    .muted {
+      color: #60717e;
+      font-size: 0.82rem;
+    }
+
+    @media (max-width: 650px) {
+      .container { padding: 0; }
+      .card { padding: 18px; }
+      h1 { font-size: 1.5rem; }
+      .row-2cols { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="card">
+    <div class="card-header">
+      <h1>🍽️ Menu Builder Pro</h1>
+      <button id="refreshRestaurantsBtn" class="secondary small">⟳ Refresh</button>
+    </div>
+
+    <div id="healthBanner" class="warning-banner" style="display:none;"></div>
+
+    <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end;">
+      <div style="flex:2">
+        <label>📋 Select restaurant</label>
+        <select id="restaurantSelect" style="font-weight:500;"></select>
+      </div>
+      <div style="flex:1">
+        <label>&nbsp;</label>
+        <button id="newRestaurantBtn" class="secondary">+ New restaurant</button>
+      </div>
+      <div style="flex:1">
+        <label>&nbsp;</label>
+        <button id="editRestaurantBtn" class="secondary">✏️ Edit connection</button>
+      </div>
+    </div>
+    <div id="restaurantInfo" style="margin-top: 12px; font-size:0.8rem; color:#4a5b66;"></div>
+    <div class="credentials-hint" id="serviceAccountHint"></div>
+  </div>
+
+  <div class="card" id="dishFormCard">
+    <div class="card-header">
+      <h2><span id="formTitle">➕ Add new dish</span></h2>
+      <button id="cancelEditBtn" class="secondary small" style="display:none;">Cancel edit</button>
+    </div>
+    <input type="hidden" id="editRowId" value="">
+
+    <label>Dish name *</label>
+    <input type="text" id="dishName" placeholder="e.g., Pasta Puttanesca">
+
+    <label>Menu category *</label>
+    <input type="text" id="category" placeholder="LUNCH, DINNER, APPETIZERS, etc.">
+
+    <label>Short description</label>
+    <textarea id="description" placeholder="Brief description of the dish"></textarea>
+
+    <div class="allergen-grid" id="allergensContainer"></div>
+
+    <label>🥘 Ingredients (use MAIN:, SAUCE:, GARNISH: on new lines, commas or |)</label>
+    <textarea id="ingredients" placeholder="MAIN: Chicken, Garlic, Onions&#10;SAUCE: Tomato sauce, Olive oil"></textarea>
+
+    <label>✏️ Modifications allowed</label>
+    <textarea id="modifications" placeholder="No cheese, no sauce"></textarea>
+
+    <div class="row-2cols">
+      <div>
+        <label>🇪🇸 Spanish ingredients</label>
+        <textarea id="ingredientsSpanish" placeholder="PRINCIPAL: Pollo, Ajo, Cebolla"></textarea>
+      </div>
+      <div>
+        <label>🇪🇸 Spanish modifications</label>
+        <textarea id="modificationsSpanish" placeholder="Sin queso, sin salsa"></textarea>
+      </div>
+    </div>
+
+    <div style="margin-top: 20px;">
+      <button id="submitDishBtn">💾 Save dish</button>
+      <button id="clearFormBtn" class="secondary">Clear form</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h2>🔍 Search & Edit dishes</h2>
+      <button id="refreshDishesBtn" class="secondary small">⟳ Refresh list</button>
+    </div>
+    <div class="search-box">
+      <span class="search-icon">🔎</span>
+      <input type="text" id="searchDishInput" placeholder="Search by dish name...">
+    </div>
+    <div id="dishesListContainer">
+      <div class="empty-state">Select a restaurant to load dishes</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const ALLERGEN_KEYS = ["dairy", "eggs", "fish", "shellfish", "treenuts", "peanuts", "gluten", "soy", "sesame", "alcohol"];
+  const ALLERGEN_LABELS = ["Dairy", "Eggs", "Fish", "Shellfish", "Tree Nuts", "Peanuts", "Gluten", "Soy", "Sesame", "Alcohol"];
+
+  let restaurants = [];
+  let currentRestaurantId = null;
+  let allDishes = [];
+  let searchTerm = "";
+
+  function renderAllergenChips(defaultValues = {}) {
+    const container = document.getElementById("allergensContainer");
+    container.innerHTML = "";
+    ALLERGEN_KEYS.forEach((key, idx) => {
+      const currentVal = defaultValues[key] || "NO";
+      const div = document.createElement("div");
+      div.className = "allergen-chip";
+      div.innerHTML = `
+        <span style="min-width:70px;">${ALLERGEN_LABELS[idx]}:</span>
+        <select data-allergen="${key}">
+          <option value="YES" ${currentVal === "YES" ? "selected" : ""}>YES</option>
+          <option value="NO" ${currentVal === "NO" ? "selected" : ""}>NO</option>
+        </select>
+      `;
+      container.appendChild(div);
+    });
+  }
+
+  function getAllergenValues() {
+    const values = {};
+    document.querySelectorAll(".allergen-chip select").forEach((sel) => {
+      values[sel.dataset.allergen] = sel.value;
+    });
+    return values;
+  }
+
+  function clearForm() {
+    document.getElementById("formTitle").innerHTML = "➕ Add new dish";
+    document.getElementById("editRowId").value = "";
+    document.getElementById("dishName").value = "";
+    document.getElementById("category").value = "";
+    document.getElementById("description").value = "";
+    document.getElementById("ingredients").value = "";
+    document.getElementById("modifications").value = "";
+    document.getElementById("ingredientsSpanish").value = "";
+    document.getElementById("modificationsSpanish").value = "";
+    renderAllergenChips({});
+    document.getElementById("cancelEditBtn").style.display = "none";
+  }
+
+  function populateFormForEdit(dish, rowNum) {
+    document.getElementById("formTitle").innerHTML = "✏️ Edit dish";
+    document.getElementById("editRowId").value = rowNum;
+    document.getElementById("dishName").value = dish.name || "";
+    document.getElementById("category").value = dish.category || "";
+    document.getElementById("description").value = dish.description || "";
+    document.getElementById("ingredients").value = dish.ingredients || "";
+    document.getElementById("modifications").value = dish.modifications || "";
+    document.getElementById("ingredientsSpanish").value = dish.ingredientsSpanish || "";
+    document.getElementById("modificationsSpanish").value = dish.modificationsSpanish || "";
+    renderAllergenChips({
+      dairy: dish.dairy || "NO",
+      eggs: dish.eggs || "NO",
+      fish: dish.fish || "NO",
+      shellfish: dish.shellfish || "NO",
+      treenuts: dish.treenuts || "NO",
+      peanuts: dish.peanuts || "NO",
+      gluten: dish.gluten || "NO",
+      soy: dish.soy || "NO",
+      sesame: dish.sesame || "NO",
+      alcohol: dish.alcohol || "NO"
+    });
+    document.getElementById("cancelEditBtn").style.display = "inline-block";
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function setSaveButtonState(isSaving) {
+    const button = document.getElementById("submitDishBtn");
+    button.disabled = isSaving;
+    button.innerText = isSaving ? "Saving..." : "💾 Save dish";
+  }
+
+  function escapeHtml(str) {
+    if (!str) return "";
+    return str.replace(/[&<>]/g, (m) => {
+      if (m === "&") return "&amp;";
+      if (m === "<") return "&lt;";
+      if (m === ">") return "&gt;";
+      return m;
+    });
+  }
+
+  function showTemporaryMessage(msg, type = "success") {
+    const banner = document.createElement("div");
+    banner.className = type === "warning" ? "warning-banner" : "success-banner";
+    banner.innerText = msg;
+    const card = document.getElementById("dishFormCard");
+    card.insertBefore(banner, card.firstChild);
+    setTimeout(() => banner.remove(), 3000);
+  }
+
+  async function fetchJson(url, options = {}) {
+    const response = await fetch(url, options);
+    if (!response.ok) {
+      let message = "Request failed.";
+      try {
+        const errorJson = await response.json();
+        message = errorJson.error || message;
+      } catch (error) {
+        message = response.statusText || message;
+      }
+      throw new Error(message);
+    }
+
+    if (response.status === 204) {
+      return null;
+    }
+
+    return response.json();
+  }
+
+  function setRestaurantInfo() {
+    const info = document.getElementById("restaurantInfo");
+    if (!currentRestaurantId) {
+      info.innerHTML = "Select or create a restaurant to begin.";
+      return;
+    }
+
+    const selected = restaurants.find((r) => Number(r.id) === Number(currentRestaurantId));
+    if (!selected) {
+      info.innerHTML = "Restaurant not found.";
+      return;
+    }
+
+    info.innerHTML = `✅ Active: <b>${escapeHtml(selected.name)}</b> · Sheet tab: <b>${escapeHtml(selected.sheetName)}</b>`;
+  }
+
+  function renderRestaurantDropdown() {
+    const select = document.getElementById("restaurantSelect");
+    const options = ['<option value="">-- Select restaurant --</option>'];
+    restaurants.forEach((restaurant) => {
+      options.push(
+        `<option value="${restaurant.id}" ${Number(restaurant.id) === Number(currentRestaurantId) ? "selected" : ""}>${escapeHtml(restaurant.name)}</option>`
+      );
+    });
+    select.innerHTML = options.join("");
+  }
+
+  async function loadRestaurants() {
+    const data = await fetchJson("/api/restaurants");
+    restaurants = data.restaurants || [];
+    renderRestaurantDropdown();
+
+    if (restaurants.length && !currentRestaurantId) {
+      currentRestaurantId = restaurants[0].id;
+      renderRestaurantDropdown();
+    }
+
+    if (currentRestaurantId && !restaurants.find((r) => Number(r.id) === Number(currentRestaurantId))) {
+      currentRestaurantId = null;
+    }
+
+    setRestaurantInfo();
+    await loadDishes();
+  }
+
+  function createDishRowHtml(dish) {
+    return `
+      <div class="dish-row">
+        <div>
+          <div class="dish-name">${escapeHtml(dish.name)}</div>
+          <div class="dish-category">${escapeHtml(dish.category)}</div>
+          <div class="muted">${dish.description ? escapeHtml(dish.description.substring(0, 70)) : ""}</div>
+        </div>
+        <div style="display: flex; gap: 8px; margin-top: 8px;">
+          <button class="secondary small" data-edit-row="${dish.rowNum}">✏️ Edit</button>
+          <button class="danger small" data-delete-row="${dish.rowNum}">🗑️ Delete</button>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderDishesList() {
+    const container = document.getElementById("dishesListContainer");
+    if (!currentRestaurantId) {
+      container.innerHTML = '<div class="empty-state">Select a restaurant to load dishes</div>';
+      return;
+    }
+
+    if (!allDishes.length) {
+      container.innerHTML = '<div class="empty-state">🍽️ No dishes yet. Add your first dish above.</div>';
+      return;
+    }
+
+    let filtered = allDishes;
+    if (searchTerm.trim()) {
+      const lowered = searchTerm.toLowerCase();
+      filtered = allDishes.filter((dish) => (dish.name || "").toLowerCase().includes(lowered));
+    }
+
+    if (!filtered.length) {
+      container.innerHTML = '<div class="empty-state">🔍 No matching dishes found</div>';
+      return;
+    }
+
+    container.innerHTML = filtered.map(createDishRowHtml).join("");
+
+    document.querySelectorAll("[data-edit-row]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const rowNum = Number(btn.dataset.editRow);
+        const dish = allDishes.find((item) => Number(item.rowNum) === rowNum);
+        if (dish) populateFormForEdit(dish, rowNum);
+      });
+    });
+
+    document.querySelectorAll("[data-delete-row]").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const rowNum = Number(btn.dataset.deleteRow);
+        if (!confirm("Delete this dish permanently?")) {
+          return;
+        }
+        try {
+          await fetchJson(`/api/restaurants/${currentRestaurantId}/dishes/${rowNum}`, { method: "DELETE" });
+          showTemporaryMessage("🗑️ Dish deleted");
+          await loadDishes();
+        } catch (error) {
+          showTemporaryMessage(`Error: ${error.message}`, "warning");
+        }
+      });
+    });
+  }
+
+  async function loadDishes() {
+    if (!currentRestaurantId) {
+      allDishes = [];
+      renderDishesList();
+      return;
+    }
+
+    try {
+      const data = await fetchJson(`/api/restaurants/${currentRestaurantId}/dishes`);
+      allDishes = data.dishes || [];
+      renderDishesList();
+    } catch (error) {
+      allDishes = [];
+      renderDishesList();
+      showTemporaryMessage(`Failed to load dishes: ${error.message}`, "warning");
+    }
+  }
+
+  function collectDishFromForm() {
+    return {
+      name: document.getElementById("dishName").value.trim(),
+      category: document.getElementById("category").value.trim(),
+      description: document.getElementById("description").value.trim(),
+      ingredients: document.getElementById("ingredients").value.trim(),
+      modifications: document.getElementById("modifications").value.trim(),
+      ingredientsSpanish: document.getElementById("ingredientsSpanish").value.trim(),
+      modificationsSpanish: document.getElementById("modificationsSpanish").value.trim(),
+      ...getAllergenValues()
+    };
+  }
+
+  async function saveDish() {
+    if (!currentRestaurantId) {
+      showTemporaryMessage("Select a restaurant first", "warning");
+      return;
+    }
+
+    const dish = collectDishFromForm();
+    if (!dish.name) {
+      showTemporaryMessage("Dish name required", "warning");
+      return;
+    }
+    if (!dish.category) {
+      showTemporaryMessage("Menu category required", "warning");
+      return;
+    }
+
+    const editRowId = Number(document.getElementById("editRowId").value);
+
+    try {
+      setSaveButtonState(true);
+      if (editRowId) {
+        await fetchJson(`/api/restaurants/${currentRestaurantId}/dishes/${editRowId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(dish)
+        });
+        showTemporaryMessage("✅ Dish updated");
+      } else {
+        await fetchJson(`/api/restaurants/${currentRestaurantId}/dishes`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(dish)
+        });
+        showTemporaryMessage("✅ Dish saved");
+      }
+      clearForm();
+      await loadDishes();
+    } catch (error) {
+      showTemporaryMessage(`Error: ${error.message}`, "warning");
+    } finally {
+      setSaveButtonState(false);
+    }
+  }
+
+  async function promptRestaurantData(existing = null) {
+    const title = existing ? "Edit restaurant connection" : "New restaurant";
+    const name = prompt(`${title}\nRestaurant name:`, existing ? existing.name : "");
+    if (name === null) return null;
+    const trimmedName = name.trim();
+    if (!trimmedName) {
+      alert("Restaurant name is required.");
+      return null;
+    }
+
+    const spreadsheetIdOrUrl = prompt(
+      `${title}\nPaste Google Spreadsheet URL or ID:`,
+      existing ? existing.spreadsheetId : ""
+    );
+    if (spreadsheetIdOrUrl === null) return null;
+    if (!spreadsheetIdOrUrl.trim()) {
+      alert("Spreadsheet URL/ID is required.");
+      return null;
+    }
+
+    const sheetName = prompt(`${title}\nWorksheet tab name:`, existing ? existing.sheetName : "Dishes");
+    if (sheetName === null) return null;
+
+    return {
+      name: trimmedName,
+      spreadsheetId: spreadsheetIdOrUrl.trim(),
+      sheetName: (sheetName || "Dishes").trim() || "Dishes"
+    };
+  }
+
+  async function createRestaurant() {
+    const payload = await promptRestaurantData();
+    if (!payload) return;
+
+    try {
+      await fetchJson("/api/restaurants", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      await loadRestaurants();
+      showTemporaryMessage("✅ Restaurant created and connected");
+    } catch (error) {
+      showTemporaryMessage(`Failed to create restaurant: ${error.message}`, "warning");
+    }
+  }
+
+  async function editRestaurantConnection() {
+    if (!currentRestaurantId) {
+      showTemporaryMessage("Select a restaurant first", "warning");
+      return;
+    }
+    const current = restaurants.find((r) => Number(r.id) === Number(currentRestaurantId));
+    if (!current) {
+      showTemporaryMessage("Restaurant not found", "warning");
+      return;
+    }
+
+    const payload = await promptRestaurantData(current);
+    if (!payload) return;
+
+    try {
+      await fetchJson(`/api/restaurants/${currentRestaurantId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      await loadRestaurants();
+      showTemporaryMessage("✅ Connection updated");
+    } catch (error) {
+      showTemporaryMessage(`Failed to update connection: ${error.message}`, "warning");
+    }
+  }
+
+  async function loadHealth() {
+    try {
+      const health = await fetchJson("/api/health");
+      const banner = document.getElementById("healthBanner");
+      const hint = document.getElementById("serviceAccountHint");
+
+      if (!health.credentialsConfigured) {
+        banner.style.display = "block";
+        banner.innerText = "Google credentials are not configured on the server. Open .env.example and add a service account JSON to continue.";
+      } else {
+        banner.style.display = "none";
+      }
+
+      if (health.serviceAccountEmail) {
+        hint.innerText = `Service account: ${health.serviceAccountEmail}. Share each target spreadsheet with this email as Editor.`;
+      } else {
+        hint.innerText = "Configure credentials first, then share each target spreadsheet with your service account as Editor.";
+      }
+    } catch (error) {
+      const banner = document.getElementById("healthBanner");
+      banner.style.display = "block";
+      banner.innerText = `Server health check failed: ${error.message}`;
+    }
+  }
+
+  document.getElementById("restaurantSelect").addEventListener("change", async (e) => {
+    currentRestaurantId = e.target.value ? Number(e.target.value) : null;
+    setRestaurantInfo();
+    clearForm();
+    await loadDishes();
+  });
+  document.getElementById("searchDishInput").addEventListener("input", (e) => {
+    searchTerm = e.target.value || "";
+    renderDishesList();
+  });
+  document.getElementById("submitDishBtn").addEventListener("click", saveDish);
+  document.getElementById("clearFormBtn").addEventListener("click", clearForm);
+  document.getElementById("cancelEditBtn").addEventListener("click", clearForm);
+  document.getElementById("refreshDishesBtn").addEventListener("click", loadDishes);
+  document.getElementById("refreshRestaurantsBtn").addEventListener("click", loadRestaurants);
+  document.getElementById("newRestaurantBtn").addEventListener("click", createRestaurant);
+  document.getElementById("editRestaurantBtn").addEventListener("click", editRestaurantConnection);
+
+  async function init() {
+    renderAllergenChips({});
+    await loadHealth();
+    await loadRestaurants();
+  }
+
+  init();
+</script>
+</body>
+</html>

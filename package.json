@@ -1,0 +1,28 @@
+{
+  "name": "menu-intake-app",
+  "version": "1.0.0",
+  "description": "Reusable restaurant menu intake app with Google Sheets integration",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "test": "node -e \"console.log('No automated tests configured yet')\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/danielamperezg/menuapp.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/danielamperezg/menuapp/issues"
+  },
+  "homepage": "https://github.com/danielamperezg/menuapp#readme",
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "googleapis": "^171.4.0",
+    "sqlite3": "^6.0.1"
+  }
+}
